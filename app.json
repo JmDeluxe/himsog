@@ -49,6 +49,12 @@
         {
           "cameraPermission": "Allow Himsog to access your camera to scan product barcodes."
         }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Allow Himsog to access your photos to scan barcodes from saved images."
+        }
       ]
     ],
     "experiments": {

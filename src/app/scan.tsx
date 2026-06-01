@@ -1,5 +1,11 @@
-import { BarcodeScanningResult, CameraView, useCameraPermissions } from "expo-camera";
-import React, { useEffect, useState } from "react";
+import {
+  BarcodeScanningResult,
+  CameraView,
+  scanFromURLAsync,
+  useCameraPermissions,
+} from "expo-camera";
+import * as ImagePicker from "expo-image-picker";
+import { useEffect, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -69,6 +75,46 @@ export default function ScanScreen() {
     setScanned(false);
     setProduct(null);
     setManualCode("");
+  };
+
+  const handlePickFromGallery = async () => {
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ["images"],
+      quality: 1,
+    });
+
+    if (result.canceled) return;
+
+    setLoading(true);
+    setProduct(null);
+
+    try {
+      const barcodes = await scanFromURLAsync(result.assets[0].uri, [
+        "ean13",
+        "ean8",
+        "upc_a",
+        "upc_e",
+        "qr",
+      ]);
+
+      if (barcodes.length > 0) {
+        lookupBarcode(barcodes[0].data);
+      } else {
+        Alert.alert(
+          "No Barcode Found",
+          "No barcode was detected in the selected image.",
+        );
+        setLoading(false);
+        setScanned(false);
+      }
+    } catch {
+      Alert.alert(
+        "Scan Failed",
+        "Could not read barcodes from the selected image.",
+      );
+      setLoading(false);
+      setScanned(false);
+    }
   };
 
   if (loading) {
@@ -161,6 +207,15 @@ export default function ScanScreen() {
             <ThemedText type="smallBold">Search</ThemedText>
           </TouchableOpacity>
         </ThemedView>
+        <TouchableOpacity
+          style={[
+            styles.galleryButton,
+            { backgroundColor: theme.backgroundElement },
+          ]}
+          onPress={handlePickFromGallery}
+        >
+          <ThemedText type="smallBold">Pick from Gallery</ThemedText>
+        </TouchableOpacity>
       </ThemedView>
     </ThemedView>
   );
@@ -243,5 +298,10 @@ const styles = StyleSheet.create({
     paddingVertical: Spacing.two,
     borderRadius: Spacing.two,
     justifyContent: "center",
+  },
+  galleryButton: {
+    paddingVertical: Spacing.two,
+    borderRadius: Spacing.two,
+    alignItems: "center",
   },
 });
