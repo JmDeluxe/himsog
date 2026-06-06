@@ -30,7 +30,7 @@ function NutrientRow({ nutrient }: { nutrient: NutrientInfo }) {
 export function NutritionDisplay({ product }: { product: Product }) {
   const nutriscoreColor = product.nutriscoreGrade
     ? NUTRISCORE_COLORS[product.nutriscoreGrade.toLowerCase()] ?? '#888888'
-    : null;
+    : '#888888';
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
