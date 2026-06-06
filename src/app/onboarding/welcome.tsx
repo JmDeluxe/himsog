@@ -33,7 +33,7 @@ export default function WelcomeScreen() {
           <ThemedText themeColor="textSecondary" style={styles.orText}>or</ThemedText>
           <View style={[styles.line, { backgroundColor: theme.backgroundSelected }]} />
         </View>
-        <SecondaryButton label="Sign In" onPress={() => {}} />
+        <SecondaryButton label="Sign In" onPress={() => router.push('/auth/login')} />
       </View>
     </ThemedView>
   );

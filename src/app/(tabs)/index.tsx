@@ -1,28 +1,30 @@
-import React, { useState } from 'react';
-import { StyleSheet, View } from 'react-native';
-import { useRouter } from 'expo-router';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import React, { useState } from "react";
+import { Alert, Pressable, StyleSheet, View } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { ProfileSyncBanner } from '@/components/profile-sync-banner';
-import { BottomTabInset, MaxContentWidth, Spacing } from '@/constants/theme';
-import { useTheme } from '@/hooks/use-theme';
-import { useOnboarding } from '@/hooks/use-onboarding';
+import { ProfileSyncBanner } from "@/components/profile-sync-banner";
+import { ThemedText } from "@/components/themed-text";
+import { ThemedView } from "@/components/themed-view";
+import { BottomTabInset, MaxContentWidth, Spacing } from "@/constants/theme";
+import { useAuth } from "@/hooks/use-auth";
+import { useOnboarding } from "@/hooks/use-onboarding";
+import { useTheme } from "@/hooks/use-theme";
 import {
-  calculateBMI,
-  getBMICategory,
-  calculateDailyCalories,
-  FITNESS_GOAL_LABELS,
   ACTIVITY_LEVEL_LABELS,
-  EXPERIENCE_LEVEL_LABELS,
-  kgToLbs,
+  calculateBMI,
+  calculateDailyCalories,
   cmToImperial,
-} from '@/services/onboarding';
+  EXPERIENCE_LEVEL_LABELS,
+  FITNESS_GOAL_LABELS,
+  getBMICategory,
+  kgToLbs,
+  WORKOUT_LOCATION_LABELS,
+} from "@/services/onboarding";
 
 export default function HomeScreen() {
   const theme = useTheme();
   const { data } = useOnboarding();
+  const { user, signOut } = useAuth();
   const [showBanner, setShowBanner] = useState(true);
 
   const weightKg = parseFloat(data.weightKg) || 0;
@@ -32,94 +34,189 @@ export default function HomeScreen() {
   const freq = parseInt(data.workoutFrequency) || 3;
 
   const bmi = weightKg && heightCm ? calculateBMI(weightKg, heightCm) : null;
-  const bmiCategory = bmi ? getBMICategory(bmi) : '';
+  const bmiCategory = bmi ? getBMICategory(bmi) : "";
   const calories =
     data.gender && data.fitnessGoal && data.activityLevel
-      ? calculateDailyCalories(data.gender, age, weightKg, heightCm, data.activityLevel, data.fitnessGoal)
+      ? calculateDailyCalories(
+          data.gender,
+          age,
+          weightKg,
+          heightCm,
+          data.activityLevel,
+          data.fitnessGoal,
+        )
       : null;
 
-  const weightDisplay = data.unitSystem === 'imperial'
-    ? `${kgToLbs(weightKg)} lbs`
-    : `${weightKg} kg`;
-  const targetDisplay = data.unitSystem === 'imperial'
-    ? `${kgToLbs(targetKg)} lbs`
-    : `${targetKg} kg`;
+  const weightDisplay =
+    data.unitSystem === "imperial"
+      ? `${kgToLbs(weightKg)} lbs`
+      : `${weightKg} kg`;
+  const targetDisplay =
+    data.unitSystem === "imperial"
+      ? `${kgToLbs(targetKg)} lbs`
+      : `${targetKg} kg`;
+
+  const handleSignOut = () => {
+    Alert.alert("Sign Out", "Are you sure you want to sign out?", [
+      { text: "Cancel", style: "cancel" },
+      { text: "Sign Out", style: "destructive", onPress: signOut },
+    ]);
+  };
+
+  console.log("Hasdasds");
+  console.log(process.env.EXPO_PUBLIC_SUPABASE_URL);
 
   return (
     <ThemedView style={styles.container}>
       <SafeAreaView style={styles.safeArea}>
         <View style={styles.header}>
-          <ThemedText type="title" style={styles.greeting}>Hi there</ThemedText>
-          <ThemedText themeColor="textSecondary" style={styles.subtitle}>
-            {data.fitnessGoal ? FITNESS_GOAL_LABELS[data.fitnessGoal] : 'Let\'s get started'}
-          </ThemedText>
+          <View style={styles.headerTop}>
+            <View>
+              <ThemedText type="title" style={styles.greeting}>
+                Hi there
+              </ThemedText>
+              <ThemedText themeColor="textSecondary" style={styles.subtitle}>
+                {data.fitnessGoal
+                  ? FITNESS_GOAL_LABELS[data.fitnessGoal]
+                  : "Let's get started"}
+              </ThemedText>
+            </View>
+            {user && (
+              <Pressable onPress={handleSignOut} style={styles.signOutButton}>
+                <ThemedText
+                  type="small"
+                  themeColor="textSecondary"
+                  style={styles.signOutText}
+                >
+                  Sign Out
+                </ThemedText>
+              </Pressable>
+            )}
+          </View>
+          {user && (
+            <View
+              style={[styles.syncBadge, { backgroundColor: theme.accentBg }]}
+            >
+              <ThemedText
+                type="small"
+                style={{ color: theme.accent, fontSize: 12 }}
+              >
+                ☁️ Synced as {user.email}
+              </ThemedText>
+            </View>
+          )}
         </View>
 
-        {showBanner && (
-          <ProfileSyncBanner
-            onSignIn={() => {}}
-            onDismiss={() => setShowBanner(false)}
-          />
+        {!user && showBanner && (
+          <ProfileSyncBanner onDismiss={() => setShowBanner(false)} />
         )}
 
         <View style={styles.statsGrid}>
           <ThemedView type="backgroundElement" style={styles.statCard}>
-            <ThemedText themeColor="textSecondary" style={styles.statLabel}>BMI</ThemedText>
-            <ThemedText style={[styles.statValue, { color: theme.accent }]}>
-              {bmi ?? '—'}
+            <ThemedText themeColor="textSecondary" style={styles.statLabel}>
+              BMI
             </ThemedText>
-            <ThemedText type="small" themeColor="textSecondary">{bmiCategory}</ThemedText>
+            <ThemedText style={[styles.statValue, { color: theme.accent }]}>
+              {bmi ?? "—"}
+            </ThemedText>
+            <ThemedText type="small" themeColor="textSecondary">
+              {bmiCategory}
+            </ThemedText>
           </ThemedView>
 
           <ThemedView type="backgroundElement" style={styles.statCard}>
-            <ThemedText themeColor="textSecondary" style={styles.statLabel}>Calories</ThemedText>
-            <ThemedText style={[styles.statValue, { color: theme.accent }]}>
-              {calories ?? '—'}
+            <ThemedText themeColor="textSecondary" style={styles.statLabel}>
+              Calories
             </ThemedText>
-            <ThemedText type="small" themeColor="textSecondary">kcal/day</ThemedText>
+            <ThemedText style={[styles.statValue, { color: theme.accent }]}>
+              {calories ?? "—"}
+            </ThemedText>
+            <ThemedText type="small" themeColor="textSecondary">
+              kcal/day
+            </ThemedText>
           </ThemedView>
 
           <ThemedView type="backgroundElement" style={styles.statCard}>
-            <ThemedText themeColor="textSecondary" style={styles.statLabel}>Current</ThemedText>
+            <ThemedText themeColor="textSecondary" style={styles.statLabel}>
+              Current
+            </ThemedText>
             <ThemedText style={[styles.statValue, { color: theme.accent }]}>
               {weightDisplay}
             </ThemedText>
-            <ThemedText type="small" themeColor="textSecondary">weight</ThemedText>
+            <ThemedText type="small" themeColor="textSecondary">
+              weight
+            </ThemedText>
           </ThemedView>
 
           <ThemedView type="backgroundElement" style={styles.statCard}>
-            <ThemedText themeColor="textSecondary" style={styles.statLabel}>Target</ThemedText>
+            <ThemedText themeColor="textSecondary" style={styles.statLabel}>
+              Target
+            </ThemedText>
             <ThemedText style={[styles.statValue, { color: theme.accent }]}>
               {targetDisplay}
             </ThemedText>
-            <ThemedText type="small" themeColor="textSecondary">goal weight</ThemedText>
+            <ThemedText type="small" themeColor="textSecondary">
+              goal weight
+            </ThemedText>
           </ThemedView>
         </View>
 
         <ThemedView type="backgroundElement" style={styles.profileCard}>
-          <ThemedText type="smallBold" style={styles.cardTitle}>Your Profile</ThemedText>
+          <ThemedText type="smallBold" style={styles.cardTitle}>
+            Your Profile
+          </ThemedText>
           <View style={styles.profileRow}>
-            <ThemedText type="small" themeColor="textSecondary">Goal</ThemedText>
+            <ThemedText type="small" themeColor="textSecondary">
+              Goal
+            </ThemedText>
             <ThemedText type="smallBold">
-              {data.fitnessGoal ? FITNESS_GOAL_LABELS[data.fitnessGoal] : '—'}
+              {data.fitnessGoal ? FITNESS_GOAL_LABELS[data.fitnessGoal] : "—"}
             </ThemedText>
           </View>
           <View style={styles.profileRow}>
-            <ThemedText type="small" themeColor="textSecondary">Activity</ThemedText>
+            <ThemedText type="small" themeColor="textSecondary">
+              Activity
+            </ThemedText>
             <ThemedText type="smallBold">
-              {data.activityLevel ? ACTIVITY_LEVEL_LABELS[data.activityLevel] : '—'}
+              {data.activityLevel
+                ? ACTIVITY_LEVEL_LABELS[data.activityLevel]
+                : "—"}
             </ThemedText>
           </View>
           <View style={styles.profileRow}>
-            <ThemedText type="small" themeColor="textSecondary">Level</ThemedText>
+            <ThemedText type="small" themeColor="textSecondary">
+              Level
+            </ThemedText>
             <ThemedText type="smallBold">
-              {data.experienceLevel ? EXPERIENCE_LEVEL_LABELS[data.experienceLevel] : '—'}
+              {data.experienceLevel
+                ? EXPERIENCE_LEVEL_LABELS[data.experienceLevel]
+                : "—"}
             </ThemedText>
           </View>
           <View style={styles.profileRow}>
-            <ThemedText type="small" themeColor="textSecondary">Workouts</ThemedText>
+            <ThemedText type="small" themeColor="textSecondary">
+              Workouts
+            </ThemedText>
             <ThemedText type="smallBold">{freq}x / week</ThemedText>
           </View>
+          <View style={styles.profileRow}>
+            <ThemedText type="small" themeColor="textSecondary">
+              Location
+            </ThemedText>
+            <ThemedText type="smallBold">
+              {data.workoutLocation ? WORKOUT_LOCATION_LABELS[data.workoutLocation] : "—"}
+            </ThemedText>
+          </View>
+          {data.injuries && data.injuries.trim() ? (
+            <View style={styles.profileRow}>
+              <ThemedText type="small" themeColor="textSecondary">
+                Injuries
+              </ThemedText>
+              <ThemedText type="smallBold" style={styles.injuryText}>
+                {data.injuries}
+              </ThemedText>
+            </View>
+          ) : null}
         </ThemedView>
       </SafeAreaView>
     </ThemedView>
@@ -129,8 +226,8 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center',
-    flexDirection: 'row',
+    justifyContent: "center",
+    flexDirection: "row",
   },
   safeArea: {
     flex: 1,
@@ -140,8 +237,13 @@ const styles = StyleSheet.create({
     maxWidth: MaxContentWidth,
   },
   header: {
-    gap: Spacing.one,
+    gap: Spacing.two,
     paddingTop: Spacing.three,
+  },
+  headerTop: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "flex-start",
   },
   greeting: {
     fontSize: 32,
@@ -151,17 +253,30 @@ const styles = StyleSheet.create({
     fontSize: 16,
     lineHeight: 24,
   },
+  signOutButton: {
+    paddingVertical: Spacing.two,
+    paddingHorizontal: Spacing.three,
+  },
+  signOutText: {
+    fontSize: 13,
+  },
+  syncBadge: {
+    paddingHorizontal: Spacing.three,
+    paddingVertical: Spacing.one,
+    borderRadius: Spacing.two,
+    alignSelf: "flex-start",
+  },
   statsGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
+    flexDirection: "row",
+    flexWrap: "wrap",
     gap: Spacing.three,
   },
   statCard: {
     flex: 1,
-    minWidth: '45%',
+    minWidth: "45%",
     borderRadius: Spacing.three,
     padding: Spacing.four,
-    alignItems: 'center',
+    alignItems: "center",
     gap: Spacing.one,
   },
   statLabel: {
@@ -169,13 +284,13 @@ const styles = StyleSheet.create({
   },
   statValue: {
     fontSize: 28,
-    fontWeight: '700',
+    fontWeight: "700",
     lineHeight: 34,
   },
   profileRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
   },
   profileCard: {
     borderRadius: Spacing.three,
@@ -185,5 +300,9 @@ const styles = StyleSheet.create({
   cardTitle: {
     fontSize: 15,
     marginBottom: Spacing.one,
+  },
+  injuryText: {
+    flex: 1,
+    textAlign: 'right',
   },
 });

@@ -1,18 +1,23 @@
 import React from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
+import { useRouter } from 'expo-router';
 
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
+import { useAuth } from '@/hooks/use-auth';
 
 interface ProfileSyncBannerProps {
-  onSignIn?: () => void;
   onDismiss?: () => void;
 }
 
-export function ProfileSyncBanner({ onSignIn, onDismiss }: ProfileSyncBannerProps) {
+export function ProfileSyncBanner({ onDismiss }: ProfileSyncBannerProps) {
   const theme = useTheme();
+  const router = useRouter();
+  const { user } = useAuth();
+
+  if (user) return null;
 
   return (
     <ThemedView style={styles.container}>
@@ -27,17 +32,19 @@ export function ProfileSyncBanner({ onSignIn, onDismiss }: ProfileSyncBannerProp
       </View>
       <View style={styles.actions}>
         <Pressable
-          onPress={onSignIn}
+          onPress={() => router.push('/auth/login')}
           style={[styles.signInButton, { backgroundColor: theme.accent }]}>
           <ThemedText type="smallBold" style={{ color: theme.background, fontSize: 13 }}>
             Sign In
           </ThemedText>
         </Pressable>
-        <Pressable onPress={onDismiss} style={styles.dismissButton}>
-          <ThemedText type="small" themeColor="textSecondary" style={{ fontSize: 12 }}>
-            Dismiss
-          </ThemedText>
-        </Pressable>
+        {onDismiss && (
+          <Pressable onPress={onDismiss} style={styles.dismissButton}>
+            <ThemedText type="small" themeColor="textSecondary" style={{ fontSize: 12 }}>
+              Dismiss
+            </ThemedText>
+          </Pressable>
+        )}
       </View>
     </ThemedView>
   );

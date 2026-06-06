@@ -17,6 +17,7 @@ import {
   FITNESS_GOAL_LABELS,
   ACTIVITY_LEVEL_LABELS,
   EXPERIENCE_LEVEL_LABELS,
+  WORKOUT_LOCATION_LABELS,
   kgToLbs,
   cmToImperial,
 } from '@/services/onboarding';
@@ -38,7 +39,7 @@ export default function SummaryScreen() {
     ? calculateDailyCalories(data.gender, age, weightKg, heightCm, data.activityLevel, data.fitnessGoal)
     : 0;
   const recommendation = data.fitnessGoal && data.experienceLevel
-    ? getFitnessRecommendation(data.fitnessGoal, data.experienceLevel, freq)
+    ? getFitnessRecommendation(data.fitnessGoal, data.experienceLevel, freq, data.workoutLocation, data.injuries)
     : '';
 
   const weightDisplay = data.unitSystem === 'imperial'
@@ -64,7 +65,7 @@ export default function SummaryScreen() {
   };
 
   return (
-    <StepLayout currentStep={6}>
+    <StepLayout currentStep={7}>
       <View style={styles.header}>
         <ThemedText type="subtitle" style={styles.title}>
           Your personalized plan
@@ -126,6 +127,18 @@ export default function SummaryScreen() {
           <ThemedText type="small" themeColor="textSecondary">Workouts</ThemedText>
           <ThemedText type="smallBold">{freq}x per week</ThemedText>
         </View>
+        <View style={styles.detailRow}>
+          <ThemedText type="small" themeColor="textSecondary">Location</ThemedText>
+          <ThemedText type="smallBold">
+            {data.workoutLocation ? WORKOUT_LOCATION_LABELS[data.workoutLocation] : '—'}
+          </ThemedText>
+        </View>
+        {data.injuries && data.injuries.trim() ? (
+          <View style={styles.detailRow}>
+            <ThemedText type="small" themeColor="textSecondary">Injuries</ThemedText>
+            <ThemedText type="smallBold" style={styles.injuryText}>{data.injuries}</ThemedText>
+          </View>
+        ) : null}
       </ThemedView>
 
       {recommendation ? (
@@ -203,6 +216,10 @@ const styles = StyleSheet.create({
   recText: {
     fontSize: 13,
     lineHeight: 18,
+  },
+  injuryText: {
+    flex: 1,
+    textAlign: 'right',
   },
   footer: {
     paddingTop: Spacing.three,

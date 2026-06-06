@@ -6,6 +6,7 @@ export type FitnessGoal = 'lose_weight' | 'gain_muscle' | 'stay_fit' | 'improve_
 export type Gender = 'male' | 'female' | 'other';
 export type ActivityLevel = 'sedentary' | 'lightly_active' | 'moderately_active' | 'very_active' | 'athlete';
 export type ExperienceLevel = 'beginner' | 'intermediate' | 'advanced';
+export type WorkoutLocation = 'gym' | 'home' | 'outdoors' | 'mixed';
 
 export type UnitSystem = 'metric' | 'imperial';
 
@@ -19,6 +20,8 @@ export interface OnboardingData {
   targetWeightKg: string;
   weeklyGoalKg: string;
   workoutFrequency: string;
+  workoutLocation: WorkoutLocation | null;
+  injuries: string;
   activityLevel: ActivityLevel | null;
   experienceLevel: ExperienceLevel | null;
   onboardingCompleted: boolean;
@@ -34,6 +37,8 @@ export const defaultOnboardingData: OnboardingData = {
   targetWeightKg: '',
   weeklyGoalKg: '0.5',
   workoutFrequency: '3',
+  workoutLocation: null,
+  injuries: '',
   activityLevel: null,
   experienceLevel: null,
   onboardingCompleted: false,
@@ -146,7 +151,9 @@ export function calculateDailyCalories(
 export function getFitnessRecommendation(
   fitnessGoal: FitnessGoal,
   experienceLevel: ExperienceLevel,
-  workoutFrequency: number
+  workoutFrequency: number,
+  workoutLocation?: WorkoutLocation | null,
+  injuries?: string | null
 ): string {
   const goalMap: Record<FitnessGoal, string> = {
     lose_weight: 'Focus on a mix of cardio and strength training to burn fat while preserving muscle.',
@@ -162,7 +169,17 @@ export function getFitnessRecommendation(
     advanced: 'Push for 5-6 sessions weekly with periodization for peak performance.',
   };
 
-  return `${goalMap[fitnessGoal]} ${levelMap[experienceLevel]}`;
+  const locationMap: Record<WorkoutLocation, string> = {
+    gym: 'Leverage gym machines and free weights for structured progression.',
+    home: 'Focus on bodyweight movements, resistance bands, and creative home setups.',
+    outdoors: 'Combine running, hiking, and calisthenics for functional fitness.',
+    mixed: 'Alternate between environments to keep your routine varied and engaging.',
+  };
+
+  let rec = `${goalMap[fitnessGoal]} ${levelMap[experienceLevel]}`;
+  if (workoutLocation) rec += ` ${locationMap[workoutLocation]}`;
+  if (injuries && injuries.trim()) rec += ' Modify exercises to accommodate your limitations and prioritize recovery.';
+  return rec;
 }
 
 export const FITNESS_GOAL_LABELS: Record<FitnessGoal, string> = {
@@ -213,4 +230,25 @@ export const GENDER_LABELS: Record<Gender, string> = {
   male: 'Male',
   female: 'Female',
   other: 'Other',
+};
+
+export const WORKOUT_LOCATION_LABELS: Record<WorkoutLocation, string> = {
+  gym: 'Gym',
+  home: 'Home',
+  outdoors: 'Outdoors',
+  mixed: 'Mixed',
+};
+
+export const WORKOUT_LOCATION_DESCRIPTIONS: Record<WorkoutLocation, string> = {
+  gym: 'Full gym equipment access',
+  home: 'Bodyweight & minimal equipment',
+  outdoors: 'Running, trails, parks',
+  mixed: 'Variety of locations',
+};
+
+export const WORKOUT_LOCATION_EMOJI: Record<WorkoutLocation, string> = {
+  gym: '🏋️',
+  home: '🏠',
+  outdoors: '🌳',
+  mixed: '🔄',
 };

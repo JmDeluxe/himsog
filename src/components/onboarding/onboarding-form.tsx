@@ -11,9 +11,10 @@ interface FormFieldProps {
   value: string;
   onChangeText: (text: string) => void;
   placeholder?: string;
-  keyboardType?: 'default' | 'numeric' | 'number-pad';
+  keyboardType?: 'default' | 'numeric' | 'number-pad' | 'email-address';
   suffix?: string;
   error?: string;
+  secureTextEntry?: boolean;
 }
 
 export function FormField({
@@ -24,6 +25,7 @@ export function FormField({
   keyboardType = 'default',
   suffix,
   error,
+  secureTextEntry,
 }: FormFieldProps) {
   const theme = useTheme();
 
@@ -47,6 +49,7 @@ export function FormField({
           placeholder={placeholder}
           placeholderTextColor={theme.textSecondary}
           keyboardType={keyboardType}
+          secureTextEntry={secureTextEntry}
         />
         {suffix && (
           <ThemedText type="small" themeColor="textSecondary" style={styles.suffix}>

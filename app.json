@@ -55,7 +55,8 @@
         {
           "photosPermission": "Allow Himsog to access your photos to scan barcodes from saved images."
         }
-      ]
+      ],
+      "expo-secure-store"
     ],
     "experiments": {
       "typedRoutes": true,

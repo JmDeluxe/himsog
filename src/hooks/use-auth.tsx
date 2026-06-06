@@ -1,0 +1,72 @@
+import React, { createContext, useContext, useEffect, useState } from 'react';
+
+import { AuthUser, getSession, signIn as authSignIn, signUp as authSignUp, signOut as authSignOut, syncOnboardingToCloud, mergeCloudToLocal } from '@/services/auth';
+
+interface AuthContextValue {
+  user: AuthUser | null;
+  loading: boolean;
+  signIn: (email: string, password: string) => Promise<void>;
+  signUp: (email: string, password: string) => Promise<void>;
+  signOut: () => Promise<void>;
+  syncToCloud: () => Promise<void>;
+}
+
+const AuthContext = createContext<AuthContextValue | null>(null);
+
+export function AuthProvider({ children }: { children: React.ReactNode }) {
+  const [user, setUser] = useState<AuthUser | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    getSession().then((u) => {
+      setUser(u);
+      setLoading(false);
+    });
+  }, []);
+
+  const signIn = async (email: string, password: string) => {
+    const u = await authSignIn(email, password);
+    setUser(u);
+    try {
+      await mergeCloudToLocal();
+    } catch {}
+  };
+
+  const signUp = async (email: string, password: string) => {
+    const u = await authSignUp(email, password);
+    setUser(u);
+    try {
+      await syncOnboardingToCloud();
+    } catch {}
+  };
+
+  const signOut = async () => {
+    await authSignOut();
+    setUser(null);
+  };
+
+  const syncToCloud = async () => {
+    await syncOnboardingToCloud();
+  };
+
+  return (
+    <AuthContext.Provider value={{ user, loading, signIn, signUp, signOut, syncToCloud }}>
+      {children}
+    </AuthContext.Provider>
+  );
+}
+
+export function useAuth() {
+  const ctx = useContext(AuthContext);
+  if (!ctx) {
+    return {
+      user: null,
+      loading: true,
+      signIn: async () => {},
+      signUp: async () => {},
+      signOut: async () => {},
+      syncToCloud: async () => {},
+    };
+  }
+  return ctx;
+}

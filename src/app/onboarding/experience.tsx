@@ -50,7 +50,7 @@ export default function ExperienceScreen() {
       <View style={styles.footer}>
         <PrimaryButton
           label="Continue"
-          onPress={() => selected && router.push('/onboarding/target')}
+          onPress={() => selected && router.push('/onboarding/preferences')}
           disabled={!selected}
         />
         <View style={{ height: Spacing.two }} />

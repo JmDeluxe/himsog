@@ -24,7 +24,7 @@ export default function TargetScreen() {
     data.targetWeightKg && parseFloat(data.targetWeightKg) > 0;
 
   return (
-    <StepLayout currentStep={5}>
+    <StepLayout currentStep={6}>
       <View style={styles.header}>
         <ThemedText type="subtitle" style={styles.title}>
           Set your targets

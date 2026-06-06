@@ -65,6 +65,15 @@ export function OnboardingProvider({ children }: { children: React.ReactNode }) 
 
 export function useOnboarding() {
   const ctx = useContext(OnboardingContext);
-  if (!ctx) throw new Error('useOnboarding must be used within OnboardingProvider');
+  if (!ctx) {
+    return {
+      data: defaultOnboardingData,
+      loading: true,
+      updateData: async () => {},
+      completeOnboarding: async () => {},
+      resetOnboarding: async () => {},
+      isOnboarded: false,
+    };
+  }
   return ctx;
 }

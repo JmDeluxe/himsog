@@ -44,4 +44,4 @@ export function ProgressIndicator({ currentStep, totalSteps }: ProgressIndicator
   );
 }
 
-export const TOTAL_ONBOARDING_STEPS = 6;
+export const TOTAL_ONBOARDING_STEPS = 7;
