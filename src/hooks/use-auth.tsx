@@ -1,14 +1,16 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 
-import { AuthUser, getSession, signIn as authSignIn, signUp as authSignUp, signOut as authSignOut, syncOnboardingToCloud, mergeCloudToLocal } from '@/services/auth';
+import { AuthUser, getSession, signIn as authSignIn, signUp as authSignUp, signOut as authSignOut, syncOnboardingToCloud, hasCloudProfile } from '@/services/auth';
+import { clearOnboardingData } from '@/services/onboarding';
 
 interface AuthContextValue {
   user: AuthUser | null;
   loading: boolean;
-  signIn: (email: string, password: string) => Promise<void>;
+  signIn: (email: string, password: string) => Promise<boolean>;
   signUp: (email: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
   syncToCloud: () => Promise<void>;
+  clearLocalData: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -24,20 +26,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     });
   }, []);
 
-  const signIn = async (email: string, password: string) => {
+  const signIn = async (email: string, password: string): Promise<boolean> => {
     const u = await authSignIn(email, password);
     setUser(u);
-    try {
-      await mergeCloudToLocal();
-    } catch {}
+    const hasCloud = await hasCloudProfile();
+    return hasCloud;
   };
 
   const signUp = async (email: string, password: string) => {
     const u = await authSignUp(email, password);
     setUser(u);
-    try {
-      await syncOnboardingToCloud();
-    } catch {}
   };
 
   const signOut = async () => {
@@ -49,8 +47,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     await syncOnboardingToCloud();
   };
 
+  const clearLocalData = async () => {
+    await clearOnboardingData();
+  };
+
   return (
-    <AuthContext.Provider value={{ user, loading, signIn, signUp, signOut, syncToCloud }}>
+    <AuthContext.Provider value={{ user, loading, signIn, signUp, signOut, syncToCloud, clearLocalData }}>
       {children}
     </AuthContext.Provider>
   );
@@ -62,10 +64,11 @@ export function useAuth() {
     return {
       user: null,
       loading: true,
-      signIn: async () => {},
+      signIn: async () => false as boolean,
       signUp: async () => {},
       signOut: async () => {},
       syncToCloud: async () => {},
+      clearLocalData: async () => {},
     };
   }
   return ctx;
