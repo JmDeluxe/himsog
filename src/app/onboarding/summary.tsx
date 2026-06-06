@@ -18,6 +18,7 @@ import {
   ACTIVITY_LEVEL_LABELS,
   EXPERIENCE_LEVEL_LABELS,
   WORKOUT_LOCATION_LABELS,
+  formatWorkoutLocations,
   kgToLbs,
   cmToImperial,
 } from '@/services/onboarding';
@@ -39,7 +40,7 @@ export default function SummaryScreen() {
     ? calculateDailyCalories(data.gender, age, weightKg, heightCm, data.activityLevel, data.fitnessGoal)
     : 0;
   const recommendation = data.fitnessGoal && data.experienceLevel
-    ? getFitnessRecommendation(data.fitnessGoal, data.experienceLevel, freq, data.workoutLocation, data.injuries)
+    ? getFitnessRecommendation(data.fitnessGoal, data.experienceLevel, freq, data.workoutLocations, data.injuries)
     : '';
 
   const weightDisplay = data.unitSystem === 'imperial'
@@ -127,12 +128,12 @@ export default function SummaryScreen() {
           <ThemedText type="small" themeColor="textSecondary">Workouts</ThemedText>
           <ThemedText type="smallBold">{freq}x per week</ThemedText>
         </View>
-        <View style={styles.detailRow}>
-          <ThemedText type="small" themeColor="textSecondary">Location</ThemedText>
-          <ThemedText type="smallBold">
-            {data.workoutLocation ? WORKOUT_LOCATION_LABELS[data.workoutLocation] : '—'}
-          </ThemedText>
-        </View>
+          <View style={styles.detailRow}>
+            <ThemedText type="small" themeColor="textSecondary">Location</ThemedText>
+            <ThemedText type="smallBold">
+              {formatWorkoutLocations(data.workoutLocations)}
+            </ThemedText>
+          </View>
         {data.injuries && data.injuries.trim() ? (
           <View style={styles.detailRow}>
             <ThemedText type="small" themeColor="textSecondary">Injuries</ThemedText>

@@ -9,11 +9,13 @@ import { PrimaryButton, SecondaryButton } from '@/components/onboarding/onboardi
 import { FormField } from '@/components/onboarding/onboarding-form';
 import { Spacing } from '@/constants/theme';
 import { useAuth } from '@/hooks/use-auth';
+import { useOnboarding } from '@/hooks/use-onboarding';
 import { isAuthAvailable } from '@/services/auth';
 
 export default function RegisterScreen() {
   const router = useRouter();
   const { signUp } = useAuth();
+  const { markSynced } = useOnboarding();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -55,6 +57,7 @@ export default function RegisterScreen() {
     setLoading(true);
     try {
       await signUp(email.trim(), password);
+      await markSynced();
       Alert.alert(
         'Account Created',
         'Your account has been created and your progress has been synced to the cloud.',

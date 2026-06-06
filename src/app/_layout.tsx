@@ -42,8 +42,15 @@ function AppNavigator() {
             <Stack.Screen name="onboarding/preferences" />
             <Stack.Screen name="onboarding/target" />
       <Stack.Screen name="onboarding/summary" />
-      <Stack.Screen name="auth/login" options={{ animation: 'slide_from_bottom' }} />
-      <Stack.Screen name="auth/register" options={{ animation: 'slide_from_bottom' }} />
+            <Stack.Screen name="auth/login" options={{ animation: 'slide_from_bottom' }} />
+            <Stack.Screen name="auth/register" options={{ animation: 'slide_from_bottom' }} />
+            <Stack.Screen name="auth/resolve" options={{ animation: 'slide_from_bottom' }} />
+            <Stack.Screen name="profile/goal" />
+            <Stack.Screen name="profile/details" />
+            <Stack.Screen name="profile/activity" />
+            <Stack.Screen name="profile/experience" />
+            <Stack.Screen name="profile/preferences" />
+            <Stack.Screen name="profile/target" />
     </Stack>
   );
 }

@@ -1,6 +1,8 @@
 import React, { useState } from "react";
 import { Alert, Pressable, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useRouter } from "expo-router";
+import { useFocusEffect } from "@react-navigation/native";
 
 import { ProfileSyncBanner } from "@/components/profile-sync-banner";
 import { ThemedText } from "@/components/themed-text";
@@ -9,6 +11,7 @@ import { BottomTabInset, MaxContentWidth, Spacing } from "@/constants/theme";
 import { useAuth } from "@/hooks/use-auth";
 import { useOnboarding } from "@/hooks/use-onboarding";
 import { useTheme } from "@/hooks/use-theme";
+import { getProfile } from "@/services/auth";
 import {
   ACTIVITY_LEVEL_LABELS,
   calculateBMI,
@@ -19,13 +22,27 @@ import {
   getBMICategory,
   kgToLbs,
   WORKOUT_LOCATION_LABELS,
+  formatWorkoutLocations,
 } from "@/services/onboarding";
 
-export default function HomeScreen() {
+export default function DashboardScreen() {
   const theme = useTheme();
-  const { data } = useOnboarding();
+  const router = useRouter();
+  const { data, resetOnboarding, refreshData } = useOnboarding();
   const { user, signOut } = useAuth();
   const [showBanner, setShowBanner] = useState(true);
+  const [username, setUsername] = useState<string | null>(null);
+
+  useFocusEffect(
+    React.useCallback(() => {
+      refreshData();
+      if (user) {
+        getProfile().then((p) => {
+          if (p?.username) setUsername(p.username);
+        });
+      }
+    }, [user])
+  );
 
   const weightKg = parseFloat(data.weightKg) || 0;
   const heightCm = parseFloat(data.heightCm) || 0;
@@ -63,8 +80,15 @@ export default function HomeScreen() {
     ]);
   };
 
-  console.log("Hasdasds");
-  console.log(process.env.EXPO_PUBLIC_SUPABASE_URL);
+  const handleReset = () => {
+    Alert.alert("Reset Onboarding", "This will clear all your data and restart onboarding. Continue?", [
+      { text: "Cancel", style: "cancel" },
+      { text: "Reset", style: "destructive", onPress: async () => {
+        await resetOnboarding();
+        router.replace("/onboarding/welcome");
+      }},
+    ]);
+  };
 
   return (
     <ThemedView style={styles.container}>
@@ -73,7 +97,7 @@ export default function HomeScreen() {
           <View style={styles.headerTop}>
             <View>
               <ThemedText type="title" style={styles.greeting}>
-                Hi there
+                {user ? (username ? `Hi, ${username}` : 'Hi there') : (data.username ? `Hi, ${data.username}` : 'Hi there')}
               </ThemedText>
               <ThemedText themeColor="textSecondary" style={styles.subtitle}>
                 {data.fitnessGoal
@@ -204,7 +228,7 @@ export default function HomeScreen() {
               Location
             </ThemedText>
             <ThemedText type="smallBold">
-              {data.workoutLocation ? WORKOUT_LOCATION_LABELS[data.workoutLocation] : "—"}
+              {formatWorkoutLocations(data.workoutLocations)}
             </ThemedText>
           </View>
           {data.injuries && data.injuries.trim() ? (
@@ -218,6 +242,12 @@ export default function HomeScreen() {
             </View>
           ) : null}
         </ThemedView>
+
+        <Pressable onPress={handleReset} style={styles.resetButton}>
+          <ThemedText type="small" themeColor="textSecondary" style={styles.resetText}>
+            Reset Onboarding
+          </ThemedText>
+        </Pressable>
       </SafeAreaView>
     </ThemedView>
   );
@@ -304,5 +334,12 @@ const styles = StyleSheet.create({
   injuryText: {
     flex: 1,
     textAlign: 'right',
+  },
+  resetButton: {
+    paddingVertical: Spacing.two,
+    alignItems: 'center',
+  },
+  resetText: {
+    fontSize: 12,
   },
 });

@@ -20,6 +20,7 @@ export default function DetailsScreen() {
   const { data, updateData } = useOnboarding();
 
   const isValid =
+    data.username.trim().length > 0 &&
     data.age && parseInt(data.age) > 0 &&
     data.gender &&
     data.heightCm && parseFloat(data.heightCm) > 0 &&
@@ -45,6 +46,14 @@ export default function DetailsScreen() {
       <UnitToggle
         unitSystem={data.unitSystem}
         onToggle={(s: UnitSystem) => updateData({ unitSystem: s })}
+      />
+
+      <FormField
+        label="Username"
+        value={data.username}
+        onChangeText={(v) => updateData({ username: v })}
+        placeholder="What should we call you?"
+        keyboardType="default"
       />
 
       <FormField

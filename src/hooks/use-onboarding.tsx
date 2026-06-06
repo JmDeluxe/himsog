@@ -14,6 +14,8 @@ interface OnboardingContextValue {
   updateData: (partial: Partial<OnboardingData>) => Promise<void>;
   completeOnboarding: () => Promise<void>;
   resetOnboarding: () => Promise<void>;
+  refreshData: () => Promise<void>;
+  markSynced: () => Promise<void>;
   isOnboarded: boolean;
 }
 
@@ -31,21 +33,33 @@ export function OnboardingProvider({ children }: { children: React.ReactNode }) 
   }, []);
 
   const updateData = async (partial: Partial<OnboardingData>) => {
-    const next = { ...data, ...partial };
+    const needUnsync = Object.keys(partial).some((k) => k !== 'isSynced');
+    const next = { ...data, ...partial, ...(needUnsync ? { isSynced: false } : {}) };
     setData(next);
-    await saveOnboardingData(partial);
+    await saveOnboardingData({ ...partial, ...(needUnsync ? { isSynced: false } : {}) });
   };
 
   const completeOnboarding = async () => {
-    const next = { ...data, onboardingCompleted: true };
+    const next = { ...data, onboardingCompleted: true, isSynced: false };
     setData(next);
     await persistComplete();
+  };
+
+  const markSynced = async () => {
+    const next = { ...data, isSynced: true };
+    setData(next);
+    await saveOnboardingData({ isSynced: true });
   };
 
   const resetOnboarding = async () => {
     setData({ ...defaultOnboardingData });
     const { clearOnboardingData } = await import('@/services/onboarding');
     await clearOnboardingData();
+  };
+
+  const refreshData = async () => {
+    const loaded = await loadOnboardingData();
+    setData(loaded);
   };
 
   return (
@@ -56,6 +70,8 @@ export function OnboardingProvider({ children }: { children: React.ReactNode }) 
         updateData,
         completeOnboarding,
         resetOnboarding,
+        refreshData,
+        markSynced,
         isOnboarded: data.onboardingCompleted,
       }}>
       {children}
@@ -72,6 +88,8 @@ export function useOnboarding() {
       updateData: async () => {},
       completeOnboarding: async () => {},
       resetOnboarding: async () => {},
+      refreshData: async () => {},
+      markSynced: async () => {},
       isOnboarded: false,
     };
   }
