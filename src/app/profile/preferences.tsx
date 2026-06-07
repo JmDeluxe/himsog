@@ -70,9 +70,9 @@ export default function ProfilePreferencesScreen() {
                       },
                     ]}>
                     {active && (
-                      <ThemedText style={{ color: theme.background, fontSize: 12, fontWeight: '700' }}>
-                        ✓
-                      </ThemedText>
+                       <ThemedText style={{ color: theme.background, fontSize: 14, fontWeight: '700', lineHeight: 18, textAlign: 'center', includeFontPadding: false }}>
+                         ✓
+                       </ThemedText>
                     )}
                   </View>
                 </Pressable>

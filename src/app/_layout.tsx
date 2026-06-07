@@ -6,6 +6,7 @@ import { Stack } from 'expo-router';
 import { AnimatedSplashOverlay } from '@/components/animated-icon';
 import { OnboardingProvider, useOnboarding } from '@/hooks/use-onboarding';
 import { AuthProvider } from '@/hooks/use-auth';
+import { ToastProvider } from '@/hooks/use-toast';
 import { useTheme } from '@/hooks/use-theme';
 
 function LoadingScreen() {
@@ -63,7 +64,9 @@ export default function RootLayout() {
       <AnimatedSplashOverlay />
       <AuthProvider>
         <OnboardingProvider>
-          <AppNavigator />
+          <ToastProvider>
+            <AppNavigator />
+          </ToastProvider>
         </OnboardingProvider>
       </AuthProvider>
     </ThemeProvider>

@@ -80,7 +80,7 @@ export default function PreferencesScreen() {
                     },
                   ]}>
                   {active && (
-                    <ThemedText style={{ color: theme.background, fontSize: 12, fontWeight: '700' }}>
+                    <ThemedText style={{ color: theme.background, fontSize: 14, fontWeight: '700', lineHeight: 18, textAlign: 'center', includeFontPadding: false }}>
                       ✓
                     </ThemedText>
                   )}

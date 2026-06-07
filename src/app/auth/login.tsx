@@ -9,6 +9,7 @@ import { FormField } from '@/components/onboarding/onboarding-form';
 import { Spacing } from '@/constants/theme';
 import { useAuth } from '@/hooks/use-auth';
 import { useOnboarding } from '@/hooks/use-onboarding';
+import { useToast } from '@/hooks/use-toast';
 import { isAuthAvailable, loadProfileFromCloud, cloudProfileToLocal, mergeCloudToLocal } from '@/services/auth';
 import { useRouter } from 'expo-router';
 
@@ -16,6 +17,7 @@ export default function LoginScreen() {
   const router = useRouter();
   const { signIn } = useAuth();
   const { data: localData, refreshData, markSynced } = useOnboarding();
+  const toast = useToast();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -52,6 +54,7 @@ export default function LoginScreen() {
           await mergeCloudToLocal();
           await refreshData();
           await markSynced();
+          toast.show({ message: 'Signed in & synced!', type: 'success' });
           router.replace('/');
         } else {
           const profile = await loadProfileFromCloud();
@@ -66,6 +69,8 @@ export default function LoginScreen() {
             if (isSame) {
               await mergeCloudToLocal();
               await refreshData();
+              await markSynced();
+              toast.show({ message: 'Signed in & synced!', type: 'success' });
               router.replace('/');
             } else {
               router.replace('/auth/resolve');
