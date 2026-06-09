@@ -70,11 +70,6 @@ export default function ProfileScreen() {
           contentContainerStyle={styles.scrollContent}
           keyboardShouldPersistTaps="handled">
           <View style={styles.header}>
-            <View style={[styles.avatar, { backgroundColor: theme.accentBg }]}>
-              <ThemedText style={{ fontSize: 32 }}>
-                {data.username ? data.username[0].toUpperCase() : '👤'}
-              </ThemedText>
-            </View>
             <ThemedText type="title" style={styles.username}>
               {data.username || 'Guest'}
             </ThemedText>
@@ -179,7 +174,7 @@ export default function ProfileScreen() {
                 title="Settings"
                 value="Units, notifications, & more"
                 emoji="⚙️"
-                onPress={() => {}}
+                onPress={() => router.push('/settings')}
                 theme={theme}
               />
             </ThemedView>
@@ -194,7 +189,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     flexDirection: 'row',
-    justifyContent: 'center',
   },
   safeArea: {
     flex: 1,
@@ -202,7 +196,7 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     paddingHorizontal: Spacing.four,
-    paddingBottom: BottomTabInset + Spacing.five,
+    paddingBottom: Spacing.five,
   },
   header: {
     alignItems: 'center',
@@ -218,8 +212,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   username: {
-    fontSize: 24,
-    lineHeight: 30,
+    fontSize: 28,
+    lineHeight: 34,
   },
   syncBadge: {
     paddingHorizontal: Spacing.three,
