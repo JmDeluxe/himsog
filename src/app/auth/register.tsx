@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Alert, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, View } from 'react-native';
+import { KeyboardAvoidingView, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 
@@ -44,15 +44,15 @@ export default function RegisterScreen() {
 
   const handleSignUp = async () => {
     if (!email.trim() || !password.trim() || !confirmPassword.trim()) {
-      Alert.alert('Missing Fields', 'Please fill in all fields.');
+      toast.show({ message: 'Please fill in all fields.', type: 'error' });
       return;
     }
     if (password !== confirmPassword) {
-      Alert.alert('Passwords Don\'t Match', 'Please make sure both passwords match.');
+      toast.show({ message: "Passwords don't match.", type: 'error' });
       return;
     }
     if (password.length < 6) {
-      Alert.alert('Weak Password', 'Password must be at least 6 characters.');
+      toast.show({ message: 'Password must be at least 6 characters.', type: 'error' });
       return;
     }
 
@@ -61,13 +61,9 @@ export default function RegisterScreen() {
       await signUp(email.trim(), password);
       await markSynced();
       toast.show({ message: 'Account created & synced!', type: 'success' });
-      Alert.alert(
-        'Account Created',
-        'Your account has been created and your progress has been synced to the cloud.',
-        [{ text: 'OK', onPress: () => router.replace('/') }]
-      );
+      router.replace('/(tabs)');
     } catch (e: any) {
-      Alert.alert('Sign Up Failed', e.message ?? 'Could not create account. Please try again.');
+      toast.show({ message: e.message ?? 'Could not create account. Please try again.', type: 'error' });
     } finally {
       setLoading(false);
     }
@@ -77,7 +73,7 @@ export default function RegisterScreen() {
     <ThemedView style={styles.container}>
       <SafeAreaView style={styles.safeArea}>
         <KeyboardAvoidingView
-          behavior={Platform.select({ ios: 'padding', android: undefined })}
+          behavior="padding"
           style={styles.keyboardAvoid}>
           <ScrollView
             contentContainerStyle={styles.scrollContent}

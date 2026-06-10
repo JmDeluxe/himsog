@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Alert, ScrollView, StyleSheet, View } from 'react-native';
+import { ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 
@@ -10,6 +10,7 @@ import { Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import { useAuth } from '@/hooks/use-auth';
 import { useOnboarding } from '@/hooks/use-onboarding';
+import { useToast } from '@/hooks/use-toast';
 import {
   OnboardingData,
   FITNESS_GOAL_LABELS,
@@ -78,6 +79,7 @@ export default function ResolveScreen() {
   const router = useRouter();
   const theme = useTheme();
   const { data: localData, refreshData, markSynced } = useOnboarding();
+  const toast = useToast();
   const [cloudData, setCloudData] = useState<OnboardingData | null>(null);
   const [loading, setLoading] = useState(true);
   const [choosing, setChoosing] = useState(false);
@@ -102,11 +104,10 @@ export default function ResolveScreen() {
     try {
       await syncOnboardingToCloud();
       await markSynced();
-      Alert.alert('Done', 'Your local data has been synced to the cloud.', [
-        { text: 'OK', onPress: () => router.replace('/') },
-      ]);
+      toast.show({ message: 'Local data synced to cloud!', type: 'success' });
+      router.replace('/');
     } catch (e: any) {
-      Alert.alert('Sync Failed', e.message ?? 'Could not sync data.');
+      toast.show({ message: e.message ?? 'Sync failed.', type: 'error' });
       setChoosing(false);
     }
   };
@@ -117,11 +118,10 @@ export default function ResolveScreen() {
       await mergeCloudToLocal();
       await refreshData();
       await markSynced();
-      Alert.alert('Done', 'Cloud data has been loaded.', [
-        { text: 'OK', onPress: () => router.replace('/') },
-      ]);
+      toast.show({ message: 'Cloud data loaded!', type: 'success' });
+      router.replace('/');
     } catch (e: any) {
-      Alert.alert('Error', e.message ?? 'Could not load cloud data.');
+      toast.show({ message: e.message ?? 'Could not load cloud data.', type: 'error' });
       setChoosing(false);
     }
   };

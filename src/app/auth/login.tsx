@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Alert, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, View } from 'react-native';
+import { KeyboardAvoidingView, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ThemedText } from '@/components/themed-text';
@@ -10,7 +10,7 @@ import { Spacing } from '@/constants/theme';
 import { useAuth } from '@/hooks/use-auth';
 import { useOnboarding } from '@/hooks/use-onboarding';
 import { useToast } from '@/hooks/use-toast';
-import { isAuthAvailable, loadProfileFromCloud, cloudProfileToLocal, mergeCloudToLocal } from '@/services/auth';
+import { isAuthAvailable, loadProfileFromCloud, cloudProfileToLocal, mergeCloudToLocal, syncOnboardingToCloud } from '@/services/auth';
 import { useRouter } from 'expo-router';
 
 export default function LoginScreen() {
@@ -43,47 +43,57 @@ export default function LoginScreen() {
 
   const handleSignIn = async () => {
     if (!email.trim() || !password.trim()) {
-      Alert.alert('Missing Fields', 'Please enter your email and password.');
+      toast.show({ message: 'Please enter your email and password.', type: 'error' });
       return;
     }
     setLoading(true);
     try {
       const hasCloud = await signIn(email.trim(), password);
       if (hasCloud) {
-        if (localData.isSynced) {
+        if (!localData.onboardingCompleted) {
           await mergeCloudToLocal();
           await refreshData();
           await markSynced();
           toast.show({ message: 'Signed in & synced!', type: 'success' });
-          router.replace('/');
-        } else {
-          const profile = await loadProfileFromCloud();
-          if (profile) {
-            const cloudConverted = cloudProfileToLocal(profile);
-            const isSame = Object.keys(cloudConverted).every((key) => {
-              const k = key as keyof typeof cloudConverted;
-              const localVal = JSON.stringify((localData as any)[k]);
-              const cloudVal = JSON.stringify(cloudConverted[k]);
-              return localVal === cloudVal;
-            });
-            if (isSame) {
-              await mergeCloudToLocal();
-              await refreshData();
-              await markSynced();
-              toast.show({ message: 'Signed in & synced!', type: 'success' });
-              router.replace('/');
-            } else {
-              router.replace('/auth/resolve');
-            }
+          router.replace('/(tabs)');
+          return;
+        }
+
+        const cloudProfile = await loadProfileFromCloud();
+        if (cloudProfile) {
+          const cloudData = cloudProfileToLocal(cloudProfile);
+          const currentLocalData = localData;
+          const hasConflict = Object.keys(cloudData).some((key) => {
+            const k = key as keyof typeof cloudData;
+            const localVal = (currentLocalData as any)[k];
+            const cloudVal = cloudData[k];
+            if (localVal === undefined || localVal === null) return false;
+            if (cloudVal === undefined || cloudVal === null) return false;
+            return JSON.stringify(localVal) !== JSON.stringify(cloudVal);
+          });
+
+          if (hasConflict && !localData.isSynced) {
+            router.replace('/auth/resolve');
           } else {
-            router.replace('/');
+            await mergeCloudToLocal();
+            await refreshData();
+            await markSynced();
+            toast.show({ message: 'Signed in & synced!', type: 'success' });
+            router.replace('/(tabs)');
           }
+        } else {
+          await markSynced();
+          router.replace('/(tabs)');
         }
       } else {
-        router.replace('/');
+        if (localData.onboardingCompleted) {
+          await markSynced();
+          await syncOnboardingToCloud();
+        }
+        router.replace('/(tabs)');
       }
     } catch (e: any) {
-      Alert.alert('Sign In Failed', e.message ?? 'Invalid email or password.');
+      toast.show({ message: e.message ?? 'Invalid email or password.', type: 'error' });
     } finally {
       setLoading(false);
     }
@@ -93,7 +103,7 @@ export default function LoginScreen() {
     <ThemedView style={styles.container}>
       <SafeAreaView style={styles.safeArea}>
         <KeyboardAvoidingView
-          behavior={Platform.select({ ios: 'padding', android: undefined })}
+          behavior="padding"
           style={styles.keyboardAvoid}>
           <ScrollView
             contentContainerStyle={styles.scrollContent}
