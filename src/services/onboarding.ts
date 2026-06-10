@@ -192,6 +192,17 @@ export function getFitnessRecommendation(
   return rec;
 }
 
+export function calculateProteinTarget(weightKg: number, fitnessGoal: FitnessGoal): number {
+  const multipliers: Record<FitnessGoal, number> = {
+    lose_weight: 1.8,
+    gain_muscle: 2.0,
+    stay_fit: 1.4,
+    improve_endurance: 1.6,
+    gain_weight: 1.8,
+  };
+  return Math.round(weightKg * multipliers[fitnessGoal]);
+}
+
 export const FITNESS_GOAL_LABELS: Record<FitnessGoal, string> = {
   lose_weight: 'Lose Weight',
   gain_muscle: 'Gain Muscle',

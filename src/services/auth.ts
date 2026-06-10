@@ -162,3 +162,17 @@ export async function mergeCloudToLocal(): Promise<void> {
   if (!cloudProfile) return;
   await saveOnboardingData(cloudProfileToLocal(cloudProfile));
 }
+
+export async function incrementCloudAiCount(): Promise<number> {
+  if (!isSupabaseConfigured) throw new SupabaseNotConfiguredError();
+  const { data, error } = await supabase.rpc('increment_ai_count');
+  if (error) throw error;
+  return (data as number) ?? 0;
+}
+
+export async function getCloudAiCount(): Promise<number> {
+  if (!isSupabaseConfigured) return 0;
+  const { data, error } = await supabase.rpc('get_ai_count');
+  if (error) throw error;
+  return (data as number) ?? 0;
+}
