@@ -2,6 +2,7 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 
 import { AuthUser, getSession, signIn as authSignIn, signUp as authSignUp, signOut as authSignOut, syncOnboardingToCloud, hasCloudProfile } from '@/services/auth';
 import { clearOnboardingData } from '@/services/onboarding';
+import { resetLocalAiCount } from '@/services/ai-coach';
 
 interface AuthContextValue {
   user: AuthUser | null;
@@ -41,6 +42,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const signOut = async () => {
     await authSignOut();
     setUser(null);
+    await resetLocalAiCount();
   };
 
   const syncToCloud = async () => {
