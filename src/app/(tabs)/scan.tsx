@@ -5,6 +5,7 @@ import {
   useCameraPermissions,
 } from "expo-camera";
 import * as ImagePicker from "expo-image-picker";
+import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import {
   ActivityIndicator,
@@ -13,14 +14,17 @@ import {
   StyleSheet,
   TextInput,
   TouchableOpacity,
+  View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { NutritionDisplay } from "@/components/nutrition-display";
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
-import { BottomTabInset, Spacing } from "@/constants/theme";
+import { Spacing } from "@/constants/theme";
+import { useFoodLog } from "@/hooks/use-food-log";
 import { useTheme } from "@/hooks/use-theme";
+import { useToast } from "@/hooks/use-toast";
 import { fetchProduct, Product } from "@/services/open-food-facts";
 
 export default function ScanScreen() {
@@ -29,7 +33,11 @@ export default function ScanScreen() {
   const [loading, setLoading] = useState(false);
   const [product, setProduct] = useState<Product | null>(null);
   const [manualCode, setManualCode] = useState("");
+  const [logged, setLogged] = useState(false);
   const theme = useTheme();
+  const router = useRouter();
+  const { addEntry } = useFoodLog();
+  const toast = useToast();
 
   useEffect(() => {
     if (permission && !permission.granted && !permission.canAskAgain) {
@@ -75,6 +83,7 @@ export default function ScanScreen() {
     setScanned(false);
     setProduct(null);
     setManualCode("");
+    setLogged(false);
   };
 
   const handlePickFromGallery = async () => {
@@ -128,20 +137,64 @@ export default function ScanScreen() {
     );
   }
 
+  const handleLogFood = () => {
+    if (!product || logged) return;
+    const cal = product.calories.value ?? 0;
+    addEntry({
+      name: product.name,
+      calories: cal,
+      protein: product.protein.value ?? 0,
+      carbs: product.carbohydrates.value ?? 0,
+      fat: product.fat.value ?? 0,
+      servingSize: product.servingSize ?? "per 100g",
+      source: "barcode",
+    });
+    setLogged(true);
+    toast.show({ message: `Logged ${cal} kcal`, type: "success" });
+    setTimeout(() => {
+      router.push("/food-log");
+    }, 600);
+  };
+
   if (product) {
     return (
       <ThemedView style={styles.container}>
         <SafeAreaView style={styles.resultSafeArea}>
           <NutritionDisplay product={product} />
-          <TouchableOpacity
-            style={[
-              styles.rescanButton,
-              { backgroundColor: theme.backgroundElement },
-            ]}
-            onPress={handleRescan}
-          >
-            <ThemedText type="smallBold">Scan Another</ThemedText>
-          </TouchableOpacity>
+          <View style={styles.resultActions}>
+            {product.calories.value !== null && (
+              <TouchableOpacity
+                style={[
+                  styles.logButton,
+                  {
+                    backgroundColor: logged
+                      ? theme.success || "#00B894"
+                      : theme.accent,
+                  },
+                ]}
+                onPress={handleLogFood}
+                disabled={logged}
+              >
+                <ThemedText
+                  type="smallBold"
+                  style={{ color: theme.background }}
+                >
+                  {logged
+                    ? "Logged ✓"
+                    : `Log ${product.calories.value ?? 0} kcal`}
+                </ThemedText>
+              </TouchableOpacity>
+            )}
+            <TouchableOpacity
+              style={[
+                styles.rescanButton,
+                { backgroundColor: theme.backgroundElement },
+              ]}
+              onPress={handleRescan}
+            >
+              <ThemedText type="smallBold">Scan Another</ThemedText>
+            </TouchableOpacity>
+          </View>
         </SafeAreaView>
       </ThemedView>
     );
@@ -264,14 +317,23 @@ const styles = StyleSheet.create({
   },
   resultSafeArea: {
     flex: 1,
-    paddingBottom: BottomTabInset + Spacing.three,
+  },
+  resultActions: {
+    gap: Spacing.two,
+    paddingHorizontal: Spacing.four,
+    marginTop: Spacing.three,
+  },
+  logButton: {
+    paddingVertical: Spacing.two,
+    borderRadius: Spacing.three,
+    alignItems: "center",
+    justifyContent: "center",
   },
   rescanButton: {
     alignSelf: "center",
-    paddingHorizontal: Spacing.four,
+    paddingHorizontal: Spacing.three,
     paddingVertical: Spacing.two,
     borderRadius: Spacing.three,
-    marginTop: Spacing.three,
   },
   manualSection: {
     paddingHorizontal: Spacing.four,
