@@ -85,16 +85,6 @@ const moveDirectories = async (userInput) => {
     // Create _layout.tsx
     const layoutPath = path.join(newAppDirPath, "_layout.tsx");
     await fs.promises.writeFile(layoutPath, layoutContent);
-    console.log("📄 src/app/_layout.tsx created.");
-
-    console.log("\n✅ Project reset complete. Next steps:");
-    console.log(
-      `1. Run \`npx expo start\` to start a development server.\n2. Edit src/app/index.tsx to edit the main screen.\n3. Put all your application code in /src, only screens and layout files should be in /src/app.${
-        userInput === "y"
-          ? `\n4. Delete the /${exampleDir} directory when you're done referencing it.`
-          : ""
-      }`
-    );
   } catch (error) {
     console.error(`❌ Error during script execution: ${error.message}`);
   }
@@ -110,5 +100,5 @@ rl.question(
       console.log("❌ Invalid input. Please enter 'Y' or 'N'.");
       rl.close();
     }
-  }
+  },
 );

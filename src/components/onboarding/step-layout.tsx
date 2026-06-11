@@ -1,5 +1,6 @@
 import React from 'react';
-import { SafeAreaView, ScrollView, StyleSheet, View } from 'react-native';
+import { ScrollView, StyleSheet, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { ProgressIndicator, TOTAL_ONBOARDING_STEPS } from './progress-indicator';
 import { Spacing } from '@/constants/theme';
@@ -19,12 +20,13 @@ export function StepLayout({
   scrollable = true,
 }: StepLayoutProps) {
   const theme = useTheme();
+  const insets = useSafeAreaInsets();
   const stepNumber = currentStep;
 
   const content = (
     <View style={[styles.container, { backgroundColor: theme.background }]}>
       {showProgress && (
-        <View style={styles.progressContainer}>
+        <View style={[styles.progressContainer, { paddingTop: Math.max(insets.top, Spacing.three) + Spacing.three }]}>
           <ProgressIndicator currentStep={stepNumber} totalSteps={TOTAL_ONBOARDING_STEPS} />
         </View>
       )}
@@ -34,7 +36,7 @@ export function StepLayout({
 
   if (scrollable) {
     return (
-      <SafeAreaView style={[styles.safeArea, { backgroundColor: theme.background }]}>
+      <View style={[styles.safeArea, { backgroundColor: theme.background }]}>
         <ScrollView
           style={{ backgroundColor: theme.background }}
           contentContainerStyle={styles.scrollContent}
@@ -42,14 +44,14 @@ export function StepLayout({
           showsVerticalScrollIndicator={false}>
           {content}
         </ScrollView>
-      </SafeAreaView>
+      </View>
     );
   }
 
   return (
-    <SafeAreaView style={[styles.safeArea, { backgroundColor: theme.background }]}>
+    <View style={[styles.safeArea, { backgroundColor: theme.background }]}>
       {content}
-    </SafeAreaView>
+    </View>
   );
 }
 
@@ -71,5 +73,6 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     flexGrow: 1,
+    paddingBottom: 32,
   },
 });
